@@ -2,10 +2,12 @@ import time
 import asyncio
 import curses
 import random
+from fire_animation import fire
 
 TIC_TIMEOUT = 0.1
 
-async def blink(canvas, row, column, symbol='*'):
+
+async def blink(canvas, row, column, symbol):
     while True:
         dim_time = random.randint(1, 20)
         bold_time = random.randint(1, 5)
@@ -38,14 +40,24 @@ def draw(canvas):
         symbol = random.choice('+*.:')
         coroutines.append(blink(canvas, y, x, symbol))
 
+    x = max_x // 2
+    y = max_y - 2
+    fire_coroutine = fire(canvas, y, x)
+
     while True:
         for coroutine in coroutines:
             try:
                 coroutine.send(None)
             except StopIteration:
                 coroutines.remove(coroutine)
+        try:
+            fire_coroutine.send(None)
+        except StopIteration:
+            pass
+
         canvas.refresh()
         time.sleep(TIC_TIMEOUT)
+
 
 if __name__ == '__main__':
     curses.wrapper(draw)
